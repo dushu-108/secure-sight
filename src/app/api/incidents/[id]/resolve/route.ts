@@ -3,17 +3,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const id = parseInt(params.id);
-  const existing = await prisma.incident.findUnique({ where: { id } });
+  // Await the params to handle Next.js 13+ route parameters
+  const { id } = await Promise.resolve(context.params);
+  const incidentId = parseInt(id);
+  const existing = await prisma.incident.findUnique({ where: { id: incidentId } });
 
   if (!existing) {
     return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
   }
 
   const updated = await prisma.incident.update({
-    where: { id },
+    where: { id: incidentId },
     data: { resolved: !existing.resolved },
   });
 
