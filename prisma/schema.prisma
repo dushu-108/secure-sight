@@ -15,19 +15,22 @@ datasource db {
 }
 
 model Camera {
-  id       String    @id @default(uuid())
+  id       Int      @id @default(autoincrement())
   name     String
   location String
+  thumbnailUrl String
   incidents Incident[]
 }
 
 model Incident {
-  id           String   @id @default(uuid())
+  id           Int      @id @default(autoincrement())
   camera       Camera   @relation(fields: [cameraId], references: [id])
-  cameraId     String
+  cameraId     Int
   type         String
   tsStart      DateTime
   tsEnd        DateTime
   thumbnailUrl String
   resolved     Boolean  @default(false)
+
+  @@index([resolved, tsStart])
 }

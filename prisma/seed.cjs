@@ -1,24 +1,37 @@
-import { PrismaClient } from '@prisma/client';
+const { PrismaClient } = require('../src/generated/prisma');
 const prisma = new PrismaClient();
 
 async function main() {
-  const cameras = await prisma.camera.createMany({
-    data: [
-      { id: 'cam1', name: 'Shop Floor A', location: 'North Wing' },
-      { id: 'cam2', name: 'Vault', location: 'Restricted Zone' },
-      { id: 'cam3', name: 'Entrance', location: 'Main Gate' },
-    ],
+  console.log(`Start seeding ...`);
+
+  // Clean up existing data
+  await prisma.incident.deleteMany({});
+  await prisma.camera.deleteMany({});
+
+  const cameraData = [
+    { name: 'Shop Floor A', location: 'North Wing', thumbnailUrl: '/thumbnails/gun1.jpg' },
+    { name: 'Vault', location: 'Restricted Zone', thumbnailUrl: '/thumbnails/unauth1.jpg' },
+    { name: 'Entrance', location: 'Main Gate', thumbnailUrl: '/thumbnails/face1.jpg' },
+  ];
+
+  await prisma.camera.createMany({
+    data: cameraData,
   });
 
-  const now = new Date();
+  const cameras = await prisma.camera.findMany();
 
-  const hoursAgo = (h: number) => new Date(now.getTime() - h * 60 * 60 * 1000);
+  const cameraMap = cameras.reduce((acc, camera) => {
+    acc[camera.name] = camera.id;
+    return acc;
+  }, {});
+
+  const now = new Date();
+  const hoursAgo = (h) => new Date(now.getTime() - h * 60 * 60 * 1000);
 
   await prisma.incident.createMany({
     data: [
       {
-        id: 'i1',
-        cameraId: 'cam1',
+        cameraId: cameraMap['Shop Floor A'],
         type: 'Unauthorised Access',
         tsStart: hoursAgo(1),
         tsEnd: hoursAgo(0.9),
@@ -26,8 +39,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i2',
-        cameraId: 'cam2',
+        cameraId: cameraMap['Vault'],
         type: 'Gun Threat',
         tsStart: hoursAgo(3),
         tsEnd: hoursAgo(2.5),
@@ -35,8 +47,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i3',
-        cameraId: 'cam3',
+        cameraId: cameraMap['Entrance'],
         type: 'Face Recognised',
         tsStart: hoursAgo(4),
         tsEnd: hoursAgo(3.8),
@@ -44,8 +55,7 @@ async function main() {
         resolved: true,
       },
       {
-        id: 'i4',
-        cameraId: 'cam1',
+        cameraId: cameraMap['Shop Floor A'],
         type: 'Gun Threat',
         tsStart: hoursAgo(5),
         tsEnd: hoursAgo(4.7),
@@ -53,8 +63,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i5',
-        cameraId: 'cam2',
+        cameraId: cameraMap['Vault'],
         type: 'Unauthorised Access',
         tsStart: hoursAgo(6),
         tsEnd: hoursAgo(5.9),
@@ -62,8 +71,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i6',
-        cameraId: 'cam3',
+        cameraId: cameraMap['Entrance'],
         type: 'Face Recognised',
         tsStart: hoursAgo(7),
         tsEnd: hoursAgo(6.8),
@@ -71,8 +79,7 @@ async function main() {
         resolved: true,
       },
       {
-        id: 'i7',
-        cameraId: 'cam1',
+        cameraId: cameraMap['Shop Floor A'],
         type: 'Gun Threat',
         tsStart: hoursAgo(8),
         tsEnd: hoursAgo(7.5),
@@ -80,8 +87,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i8',
-        cameraId: 'cam2',
+        cameraId: cameraMap['Vault'],
         type: 'Unauthorised Access',
         tsStart: hoursAgo(10),
         tsEnd: hoursAgo(9.5),
@@ -89,8 +95,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i9',
-        cameraId: 'cam3',
+        cameraId: cameraMap['Entrance'],
         type: 'Face Recognised',
         tsStart: hoursAgo(12),
         tsEnd: hoursAgo(11.7),
@@ -98,8 +103,7 @@ async function main() {
         resolved: true,
       },
       {
-        id: 'i10',
-        cameraId: 'cam1',
+        cameraId: cameraMap['Shop Floor A'],
         type: 'Gun Threat',
         tsStart: hoursAgo(15),
         tsEnd: hoursAgo(14.5),
@@ -107,8 +111,7 @@ async function main() {
         resolved: false,
       },
       {
-        id: 'i11',
-        cameraId: 'cam2',
+        cameraId: cameraMap['Vault'],
         type: 'Face Recognised',
         tsStart: hoursAgo(18),
         tsEnd: hoursAgo(17.8),
@@ -116,8 +119,7 @@ async function main() {
         resolved: true,
       },
       {
-        id: 'i12',
-        cameraId: 'cam3',
+        cameraId: cameraMap['Entrance'],
         type: 'Unauthorised Access',
         tsStart: hoursAgo(22),
         tsEnd: hoursAgo(21.5),
@@ -127,7 +129,7 @@ async function main() {
     ],
   });
 
-  console.log('Seed complete.');
+  console.log('Seeding finished.');
 }
 
 main()
