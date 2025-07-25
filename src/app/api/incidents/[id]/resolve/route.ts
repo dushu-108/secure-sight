@@ -1,15 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function PATCH(
-  req: NextRequest,
-  context: { params: { id: string } }
+  request: Request,
+  context: any
 ) {
-  // Await the params to handle Next.js 13+ route parameters
-  const { id } = await Promise.resolve(context.params);
+  const { id } = context.params;
   const incidentId = parseInt(id);
-  const existing = await prisma.incident.findUnique({ where: { id: incidentId } });
 
+  if (isNaN(incidentId)) {
+    return NextResponse.json({ error: 'Invalid incident ID' }, { status: 400 });
+  }
+
+  const existing = await prisma.incident.findUnique({ where: { id: incidentId } });
   if (!existing) {
     return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
   }
